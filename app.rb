@@ -45,7 +45,8 @@ module LavaTrucks
 
     helpers do
       def current_user
-        @current_user ||= Auth.find(session[Auth::SESSION_KEY])
+        token = request.env['HTTP_AUTHORIZATION'].to_s[/\ABearer\s+(.+)\z/i, 1]
+        @current_user ||= Auth.find_token(token) || Auth.find(session[Auth::SESSION_KEY])
       end
     end
 
@@ -60,7 +61,7 @@ module LavaTrucks
       user = Auth.authenticate(params['username'], params['password'])
       halt 401, JSON.generate(error: 'Usuário ou senha inválidos.') unless user
       session[Auth::SESSION_KEY] = user['id']
-      respond(Auth.public_user(user))
+      respond(Auth.public_user(user).merge('token' => Auth.issue_token(user)))
     end
     post '/api/logout' do
       session.clear
