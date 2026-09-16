@@ -1,0 +1,9 @@
+.env*
+!.env.example
+data
+vendor
+.bundle
+coverage
+spec
+*.db
+*.sqlite3

@@ -1,0 +1,26 @@
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.4
+  Exclude:
+    - 'vendor/**/*'
+
+# Sinatra routes and RSpec scenarios are declarative DSL blocks.
+Metrics/BlockLength:
+  Exclude:
+    - 'app.rb'
+    - 'spec/**/*'
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/ClassLength:
+  Exclude:
+    - 'app.rb'
+Metrics/MethodLength:
+  Exclude:
+    - 'lib/database.rb'
+    - 'lib/migrations.rb'
+Metrics/AbcSize:
+  Exclude:
+    - 'lib/migrations.rb'
+    - 'lib/service_types.rb'
