@@ -35,8 +35,14 @@ module LavaTrucks
     class PostgresAdapter
       def initialize(connection)
         @connection = connection
-        @connection.type_map_for_results = PG::BasicTypeMapForResults.new(@connection)
+        @database_url = ENV.fetch('DATABASE_URL')
+        @sslmode = ENV.fetch('PGSSLMODE', 'require')
+        configure_type_map
         @last_id = nil
+      end
+
+      def configure_type_map
+        @connection.type_map_for_results = PG::BasicTypeMapForResults.new(@connection)
       end
       def execute_batch(sql)
         sql.split(';').map(&:strip).reject(&:empty?).each { |statement| execute(statement) }
@@ -46,10 +52,23 @@ module LavaTrucks
         result = @connection.exec_params(query, binds)
         @last_id = result[0]['id'].to_i if result.ntuples.positive? && result.fields.include?('id')
         result.map { |row| row.transform_keys(&:to_s) }
+      rescue PG::ConnectionBad, PG::UnableToSend
+        reconnect!
+        result = @connection.exec_params(query, binds)
+        @last_id = result[0]['id'].to_i if result.ntuples.positive? && result.fields.include?('id')
+        result.map { |row| row.transform_keys(&:to_s) }
       end
       def get_first_row(sql, binds = []) = execute(sql, binds).first
       def get_first_value(sql, binds = []) = get_first_row(sql, binds)&.values&.first
       def last_insert_row_id = @last_id
+
+      private
+
+      def reconnect!
+        @connection&.close rescue nil
+        @connection = PG.connect(@database_url, connect_timeout: 10, sslmode: @sslmode)
+        configure_type_map
+      end
     end
 
     def self.synchronize(&)
