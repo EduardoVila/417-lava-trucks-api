@@ -32,6 +32,10 @@ module LavaTrucks
       find(id)
     end
 
+    def delete(id)
+      db.execute("DELETE FROM #{@table} WHERE id = ?", [id])
+    end
+
     private
 
     def db

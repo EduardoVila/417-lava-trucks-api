@@ -175,6 +175,13 @@ module LavaTrucks
       respond(repository.update(params[:id], attributes))
     end
 
+    delete '/api/washes/:id' do
+      wash = repository.find(params[:id])
+      halt 404, JSON.generate(error: 'Serviço não encontrado.') unless wash
+      repository.delete(params[:id])
+      respond({ deleted: true })
+    end
+
     post '/api/washes/:id/receive' do
       current = find!
       halt 409, JSON.generate(error: 'Esta lavagem já foi recebida.') if current['paid']
@@ -187,6 +194,13 @@ module LavaTrucks
       respond(repository('expenses').create(Validation.expense(input)), 201)
     end
 
+    delete '/api/expenses/:id' do
+      expense = repository('expenses').find(params[:id])
+      halt 404, JSON.generate(error: 'Despesa não encontrada.') unless expense
+      repository('expenses').delete(params[:id])
+      respond({ deleted: true })
+    end
+
     post '/api/service-types' do
       respond(ServiceTypes.create(input), 201)
     end
@@ -194,6 +208,12 @@ module LavaTrucks
     patch '/api/service-types/:code' do
       halt 404, JSON.generate(error: 'Tipo de lavagem não encontrado.') unless ServiceTypes.find(params[:code])
       respond(ServiceTypes.update(params[:code], input))
+    end
+
+    delete '/api/service-types/:code' do
+      halt 404, JSON.generate(error: 'Tipo de serviço não encontrado.') unless ServiceTypes.find(params[:code])
+      ServiceTypes.delete(params[:code])
+      respond({ deleted: true })
     end
 
     patch '/api/expenses/:id' do

@@ -40,6 +40,11 @@ module LavaTrucks
       find(code)
     end
 
+    # Keep historical services valid: removing a catalog item deactivates it.
+    def self.delete(code)
+      Database.connection.execute('UPDATE service_types SET active = 0 WHERE code = ?', [code])
+    end
+
     def self.validate(input, code = nil)
       name = Validation.text(input['name'], 'Nome do tipo de lavagem', max: 80)
       duplicate = all.any? { |row| row['code'] != code && row['name'].downcase == name.downcase }
