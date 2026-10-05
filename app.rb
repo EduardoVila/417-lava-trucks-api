@@ -141,15 +141,15 @@ module LavaTrucks
     post '/api/washes' do
       attributes = Validation.wash(input)
       service = ServiceTypes.validate_code(attributes['service'])
-      upsert_sql = 'INSERT INTO customers (plate, name, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP) '
-      upsert_sql += 'ON CONFLICT(plate) DO UPDATE SET name = excluded.name, updated_at = CURRENT_TIMESTAMP'
-      Database.connection.execute(
-        upsert_sql,
-        [attributes['plate'], attributes['customer']]
-      )
-      customer_id = Database.connection.get_first_value(
-        'SELECT id FROM customers WHERE plate = ?', [attributes['plate']]
-      )
+      customer_id = nil
+      if attributes['plate'] != ''
+        upsert_sql = 'INSERT INTO customers (plate, name, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP) '
+        upsert_sql += 'ON CONFLICT(plate) DO UPDATE SET name = excluded.name, updated_at = CURRENT_TIMESTAMP'
+        Database.connection.execute(upsert_sql, [attributes['plate'], attributes['customer']])
+        customer_id = Database.connection.get_first_value(
+          'SELECT id FROM customers WHERE plate = ?', [attributes['plate']]
+        )
+      end
       attributes['customer_id'] = customer_id
       attributes['user_id'] = current_user['id']
       attributes['service_name'] = service['name']

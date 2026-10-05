@@ -67,6 +67,8 @@ module LavaTrucks
     end
 
     def self.plate(value)
+      return '' if value.nil? || value.to_s.strip.empty?
+
       normalized = text(value, 'Placa', max: 10).upcase.gsub(/[ -]/, '')
       unless normalized.match?(/\A[A-Z]{3}\d[A-Z0-9]\d{2}\z/)
         raise ValidationError, 'Informe uma placa brasileira válida.'
